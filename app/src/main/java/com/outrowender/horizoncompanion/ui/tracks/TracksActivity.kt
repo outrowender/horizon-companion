@@ -3,41 +3,44 @@ package com.outrowender.horizoncompanion.ui.tracks
 import android.os.Bundle
 import android.widget.ArrayAdapter
 import android.widget.ListView
+import android.widget.SearchView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import com.outrowender.horizoncompanion.R
-
 
 class TracksActivity : AppCompatActivity() {
 
     private lateinit var _list: ListView
+    private lateinit var _search: SearchView
+
+
+    private lateinit var viewModel: TracksViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_tracks)
 
+        viewModel = ViewModelProvider(this).get(TracksViewModel::class.java)
+
         _list = findViewById(R.id.listViewTracks)
+        _search = findViewById(R.id.searchView)
 
-        //create ArrayList of String
-        val arrayList: ArrayList<String> = ArrayList()
+        viewModel.searchResults.observe(this, Observer { tracks ->
+            _list.adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, tracks)
+        })
 
-        //Add elements to arraylist
-        arrayList.add("android")
-        arrayList.add("is")
-        arrayList.add("great")
-        arrayList.add("and I love it")
-        arrayList.add("It")
-        arrayList.add("is")
-        arrayList.add("better")
-        arrayList.add("then")
-        arrayList.add("many")
-        arrayList.add("other")
-        arrayList.add("operating system.")
+        _search.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String): Boolean {
+                viewModel.search(query)
+                return false
+            }
 
-        //Create Adapter
-        //Create Adapter
-        val arrayAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, arrayList)
+            override fun onQueryTextChange(newText: String): Boolean {
+                if(newText.isNullOrEmpty()) viewModel.clearSearch()
+                return false
+            }
+        })
 
-        //assign adapter to listview
-        _list.adapter = arrayAdapter
     }
 }
